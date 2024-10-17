@@ -22,7 +22,8 @@ assuming that you have the presidents.txt file, BLS_private.csv file, and labour
 class Jobs:
     """
     A class to keep track of the number of jobs created by Democrats, Republicans and the total number of jobs created.
-    Values in thousands.
+    dem_jobs, rep_jobs, and total_jobs are in thousands.
+    __str__ returns a string representation of the jobs created, mutiplied by 1000 to get the correct number of jobs.
     """
     def __init__(self):
         self.dem_jobs = 0
