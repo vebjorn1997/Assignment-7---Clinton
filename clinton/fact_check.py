@@ -1,5 +1,22 @@
 import pandas as pd
 
+class Jobs:
+    def __init__(self):
+        self.dem_jobs = 0
+        self.rep_jobs = 0
+        self.total_jobs = 0
+
+    def add_dem_jobs(self, prev_month: int, current_month: int):
+        self.dem_jobs += current_month - prev_month
+        self.total_jobs += current_month - prev_month
+
+    def add_rep_jobs(self, prev_month: int, current_month: int):
+        self.rep_jobs += current_month - prev_month
+        self.total_jobs += current_month - prev_month
+
+    def __str__(self):
+        return f"Democrat Jobs: {self.dem_jobs}\nRepublican Jobs: {self.rep_jobs}\nTotal Jobs: {self.total_jobs}"
+
 def conclusion_writings(writing: str = ""):
     """
     Function that just writes some info to the conclusions.md file
@@ -24,74 +41,61 @@ def check_equality():
 
     conclusion_writings(f"\n## Equality Check\nThe content of the given BLS data is {'equal' if is_equal else 'different'} then data retrived at October 7th 2024\n\n---\n")
 
-def jobs_created(url_path: str, president: str):
+def jobs_created(file_path: str, presidents_file_path: str, jobs: Jobs):
     """
-    Function that takes the url path of the csv file and returns the number of jobs created
+    This function calculates the number of jobs created by the Democrats and Republicans
     """
-    dem_jobs = 0
-    rep_jobs = 0
-    total_jobs = 0
-    pres = []
-    with open(president, "r", encoding="utf-8") as file:
+    flip_years = []
+    with open(presidents_file_path, "r", encoding="utf-8") as file:
         for line in file:
-            pres.append(line.split())
+            flip_years.append(int(line))
 
-    df = pd.read_csv(url_path, skiprows=5)
-    # Fill the NaN values with the values from October 2012, this is because we are measuring the change in jobs from one month to the next and the dataset ends in October 2012
-    df_values = df.fillna( df.values[-1][10] ).values
+    df = pd.read_csv(file_path, skiprows=5)
+    df_values = df.fillna(df.values[-1][10]).values
 
-    flag = 0 # 0 - Dem, 1 - Rep
-    # Month Change Calculation
-    for year in df_values:
-        yearly_jobs = 0
-        for month in enumerate(year):
-            if month[0] == 0:
-                continue
+    flag = True # True for dem, False for rep
+    for index, year in enumerate(df_values):
+        if year[0] in flip_years:
+            flag = not flag
+        for month_index, month_total_jobs in enumerate(year[1::]):
+            #If first year, 1961, last month of previous year is equal to the first month of the current year
+            if year[0] == 1961 and month_index == 0:
+                prev_month = month_total_jobs
+            elif month_index == 0:
+                prev_month = df_values[index - 1][-1]
+            else:
+                prev_month = year[month_index]
 
-            # flag = 0 if year[0] == "Dem" else 1
-            prev_month = month[0] - 1
-            # print("Prev Month: ", year[prev_month])
-            if prev_month != 0:
-                if flag == 0: # Dem
-                    change = month[1] - year[prev_month]
-                    dem_jobs += change
-                    yearly_jobs += change
-                else: # Rep
-                    change = month[1] - year[prev_month]
-                    rep_jobs += change
-                    yearly_jobs += change
-
-            for party in pres:
-                if int(party[0]) == year[0]:
-                    flag = 0 if party[1] == "Dem" else 1
-        total_jobs += yearly_jobs
-
-    print("Total jobs: ", total_jobs)
-
-    # flag = 0 # 0 - Dem, 1 - Rep
-    # for x in df_values:
-    #     # print(x[1::])
-    #     match flag:
-    #         case 0:
-    #             dem_jobs += sum(x[1::])
-    #             total_jobs += sum(x[1::])
-    #         case 1:
-    #             rep_jobs += sum(x[1::])
-    #             total_jobs += sum(x[1::])
-    #     for party in pres:
-    #         if int(party[0]) == x[0]:
-    #             flag = 0 if party[1] == "Dem" else 1
-
-    return dem_jobs, rep_jobs, total_jobs
-
+            if flag:
+                jobs.add_dem_jobs(prev_month, month_total_jobs)
+            else:
+                jobs.add_rep_jobs(prev_month, month_total_jobs)
 
 def main():
+    """
+    Main function to execute the fact-checking process.
+
+    This function orchestrates the following steps:
+    1. Writes initial conclusions and assumptions to a file.
+    2. Checks for equality between given BLS data and data retrived at October 7th 2024 from the BLS website.
+    3. Calculates jobs created by Democrats, Republicans and the total number of jobs created.
+    4. Prints the job creation statistics.
+
+    The function relies on several helper functions:
+    - conclusion_writings(): Writes conclusions to a file.
+    - check_equality(): Compares BLS data sets.
+    - jobs_created(): Calculates job creation statistics.
+
+    No parameters are required as it uses predefined file paths and a Jobs class instance.
+
+    Returns:
+    None
+    """
     conclusion_writings()
     check_equality()
-    dem_jobs, rep_jobs, total_jobs = jobs_created("BLS_private.csv", "presidents.txt")
-    print(f"The number of jobs created by the Democrats is {dem_jobs}")
-    print(f"The number of jobs created by the Republicans is {rep_jobs}")
-    print(f"The total number of jobs created is {total_jobs}")
+    jobs = Jobs()
+    jobs_created("BLS_private.csv", "presidents.txt", jobs)
+    print(jobs)
 
 if __name__ == "__main__":
     main()
