@@ -109,7 +109,7 @@ def check_equality():
     )
 
 
-def jobs_created(file_path: str, presidents_file_path: str, jobs: Jobs):
+def jobs_created(file_path: str, presidents_file_path: str):
     """
     Calculate the number of jobs created during Democratic and Republican presidencies.
 
@@ -130,6 +130,7 @@ def jobs_created(file_path: str, presidents_file_path: str, jobs: Jobs):
         - The calculation starts from 1961 and continues until the end of the available data.
         - For any values that is a NaN, will be replaced with the value of the last month. This is to handle november and december 2012 being missing.
     """
+    jobs = Jobs()
     flip_years = []
     with open(presidents_file_path, "r", encoding="utf-8") as file:
         for line in file:
@@ -158,6 +159,8 @@ def jobs_created(file_path: str, presidents_file_path: str, jobs: Jobs):
             else:
                 jobs.add_rep_jobs(prev_month, month_total_jobs)
 
+    return jobs
+
 
 def main():
     """
@@ -173,7 +176,7 @@ def main():
     The function relies on several helper functions:
     - conclusion_writings(): Writes conclusions to a file.
     - check_equality(): Compares BLS data sets.
-    - jobs_created(): Calculates job creation statistics.
+    - jobs_created(): Calculates how many jobs were created for each party.
 
     No parameters are required as it uses predefined file paths and a Jobs class instance.
 
@@ -182,8 +185,7 @@ def main():
     """
     assumptions_writings()
     check_equality()
-    jobs = Jobs()
-    jobs_created("BLS_private.csv", "presidents.txt", jobs)
+    jobs = jobs_created("BLS_private.csv", "presidents.txt")
     write_to_conclusion(f"\n## Jobs Created\n{str(jobs)}\n\n---\n")
     write_to_conclusion("\n ## Conclusion\n Based on my own analysis and assumptions of the data, I can with some confidence say that Clinton's claim is correct. Based on the data there were 66 million jobs created during this timeperiod, and the split between Democrats and Republicans matches the claims made by Clinton. That being said, there are some uncertaies as to what clinton meant by the word \"produced\" in his speech. There are other external factors that has skewed the data to favour the Demoracts, such as the several economic crises that happened during the Republican presidencies. Other factors include the exculsion of government jobs and farm jobs, although the government jobs would most likely have favour the Democrats over the Republicans. Other questions includes questions of wether or not a president should be creditet with jobs created a month into the office. Either way, did he lie or skew that data to favour his side is not for me to say, (I'm not political scientist) but the data he quote supports his claim.\n\n---\n")
 
