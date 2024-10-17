@@ -119,10 +119,9 @@ def jobs_created(file_path: str, presidents_file_path: str):
     Args:
         file_path (str): Path to the CSV file containing employment data.
         presidents_file_path (str): Path to the file containing years when presidencies changed.
-        jobs (Jobs): An instance of the Jobs class to store the calculated job numbers.
 
     Returns:
-        None: The function updates the Jobs instance directly and doesn't return a value.
+        Jobs: An instance of the Jobs class with the calculated job numbers.
 
     Note:
         - The function assumes that the employment data CSV has a specific structure with years and monthly data.
